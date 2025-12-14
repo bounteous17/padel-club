@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id              Int      @id @default(autoincrement())
+  firstName       String
+  secondName      String
+  rating          Float    // 0-10 scale
+  age             Int
+  preferenceHours String[] // Array of time slots like "06:00 - 08:00"
+  createdAt       DateTime @default(now())
+}

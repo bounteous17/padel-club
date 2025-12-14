@@ -425,19 +425,18 @@
   border-color: var(--accent-pink);
 }
 
-/* Results Placeholder */
-.results-placeholder {
+/* Players Section */
+.players-section {
   background: var(--bg-card);
   border-radius: 0;
-  padding: 5rem 2rem;
+  padding: 2.5rem;
   box-shadow: var(--shadow-lg);
   border: 2px solid var(--border-glow);
-  text-align: center;
   position: relative;
   clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px));
 }
 
-.results-placeholder::before {
+.players-section::before {
   content: '';
   position: absolute;
   top: -2px;
@@ -448,23 +447,87 @@
   opacity: 0.05;
   clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px));
   z-index: -1;
-  animation: glow-pulse 3s ease-in-out infinite;
 }
 
-.placeholder-content {
-  max-width: 500px;
-  margin: 0 auto;
+.players-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-glow);
 }
 
-.placeholder-icon {
+.players-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.player-count {
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--accent-pink);
+}
+
+.error-hint {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
   color: var(--primary-color);
   margin-bottom: 1.5rem;
   filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.6));
   animation: float 3s ease-in-out infinite;
 }
 
-.placeholder-content h3 {
-  font-size: 2rem;
+.empty-state h3 {
+  font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-color), var(--accent-pink));
   -webkit-background-clip: text;
@@ -472,13 +535,79 @@
   background-clip: text;
   margin-bottom: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
 }
 
-.placeholder-content p {
+.empty-state p {
   color: var(--text-secondary);
   font-size: 1rem;
-  letter-spacing: 0.05em;
+}
+
+/* Players Table */
+.players-table-container {
+  overflow-x: auto;
+}
+
+.players-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier New', monospace;
+}
+
+.players-table th,
+.players-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.players-table th {
+  color: var(--primary-color);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.players-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.players-table tbody tr:hover {
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.player-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rating-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(157, 0, 255, 0.2));
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 0.875rem;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+.time-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.time-slot-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
 }
 
 /* Responsive Design */

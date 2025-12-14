@@ -5,21 +5,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # Start development server (http://localhost:5173)
-npm run build    # Build for production
-npm run preview  # Preview production build
+# Database
+docker-compose up -d              # Start PostgreSQL
+
+# Backend (from /backend)
+npm install
+npx prisma migrate dev            # Run database migrations
+npm run seed                      # Seed sample player data
+npm run dev                       # Start backend server (http://localhost:3000)
+
+# Frontend (from /frontend)
+npm install
+npm run dev                       # Start frontend dev server (http://localhost:5173)
+npm run build                     # Build for production
 ```
 
 ## Architecture
 
-This is a React 18 + Vite frontend MVP for managing padel club players. Currently frontend-only with no backend integration.
+Full-stack application for managing padel club players with filtering capabilities.
 
-**Source structure:**
-- `src/main.jsx` - App entry point, renders root React component
-- `src/App.jsx` - Single component containing the entire dashboard UI with player filter controls
-- `src/App.css` - Dashboard component styles
+**Repository structure:**
+- `frontend/` - React 18 + Vite frontend
+- `backend/` - Node.js + Express + TypeScript API
+- `docker-compose.yml` - PostgreSQL database container
+
+**Backend (`/backend`):**
+- `src/index.ts` - Express server entry point (port 3000)
+- `src/routes/players.ts` - GET /api/players endpoint with query filters
+- `prisma/schema.prisma` - Player model definition
+- `prisma/seed.ts` - Sample data seeding script
+
+**Frontend (`/frontend`):**
+- `src/App.jsx` - Main dashboard with filters and player table
+- `src/App.css` - Component styles (cyberpunk theme)
 - `src/index.css` - Global styles and CSS variables
 
-**Key state:** The App component manages a `filters` state object with: `firstName`, `secondName`, `ratingMin/Max` (0-10), `ageMin/Max`, and `preferenceHours` (array of time slots).
+**Player model:**
+- `id`, `firstName`, `secondName`, `rating` (0-10), `age`, `preferenceHours` (string array), `createdAt`
 
-**Current status:** Filter UI is functional but displays a placeholder instead of results - requires backend API integration to show player data.
+**API endpoint:** `GET /api/players?firstName=&secondName=&ratingMin=&ratingMax=&ageMin=&ageMax=&preferenceHours=`
+- All query parameters are optional
+- Name filters use case-insensitive partial matching
+- `preferenceHours` accepts comma-separated time slots

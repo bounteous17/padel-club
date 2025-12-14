@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
+
+const API_URL = 'http://localhost:3000/api/players'
 
 function App() {
   const [filters, setFilters] = useState({
@@ -11,6 +13,49 @@ function App() {
     ageMax: '',
     preferenceHours: []
   })
+
+  const [players, setPlayers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchPlayers = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const params = new URLSearchParams()
+
+      if (filters.firstName) params.append('firstName', filters.firstName)
+      if (filters.secondName) params.append('secondName', filters.secondName)
+      if (filters.ratingMin > 0) params.append('ratingMin', filters.ratingMin.toString())
+      if (filters.ratingMax < 10) params.append('ratingMax', filters.ratingMax.toString())
+      if (filters.ageMin) params.append('ageMin', filters.ageMin)
+      if (filters.ageMax) params.append('ageMax', filters.ageMax)
+      if (filters.preferenceHours.length > 0) {
+        params.append('preferenceHours', filters.preferenceHours.join(','))
+      }
+
+      const response = await fetch(`${API_URL}?${params.toString()}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch players')
+      }
+      const data = await response.json()
+      setPlayers(data)
+    } catch (err) {
+      setError(err.message)
+      setPlayers([])
+    } finally {
+      setLoading(false)
+    }
+  }, [filters])
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      fetchPlayers()
+    }, 300)
+
+    return () => clearTimeout(debounceTimer)
+  }, [fetchPlayers])
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
@@ -206,25 +251,82 @@ function App() {
           )}
         </div>
 
-        <div className="results-placeholder">
-          <div className="placeholder-content">
-            <svg
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="placeholder-icon"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            <h3>Player List</h3>
-            <p>Connect to backend to display filtered players</p>
+        {/* Players List */}
+        <div className="players-section">
+          <div className="players-header">
+            <h2>Players</h2>
+            <span className="player-count">{players.length} found</span>
           </div>
+
+          {loading && (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <p>Loading players...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="error-state">
+              <p>Error: {error}</p>
+              <p className="error-hint">Make sure the backend server is running on port 3000</p>
+            </div>
+          )}
+
+          {!loading && !error && players.length === 0 && (
+            <div className="empty-state">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="empty-icon"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <h3>No Players Found</h3>
+              <p>Try adjusting your filters or add some players to the database</p>
+            </div>
+          )}
+
+          {!loading && !error && players.length > 0 && (
+            <div className="players-table-container">
+              <table className="players-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Age</th>
+                    <th>Preferred Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {players.map((player) => (
+                    <tr key={player.id}>
+                      <td className="player-name">
+                        {player.firstName} {player.secondName}
+                      </td>
+                      <td>
+                        <span className="rating-badge">{player.rating.toFixed(1)}</span>
+                      </td>
+                      <td>{player.age}</td>
+                      <td>
+                        <div className="time-slots">
+                          {player.preferenceHours.map((slot, idx) => (
+                            <span key={idx} className="time-slot-badge">{slot}</span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
