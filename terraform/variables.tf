@@ -100,3 +100,26 @@ variable "certificate_email" {
   description = "Email for Let's Encrypt certificate notifications"
   type        = string
 }
+
+# Google OAuth Configuration
+variable "google_client_id" {
+  description = "Google OAuth Client ID"
+  type        = string
+}
+
+variable "jwt_secret" {
+  description = "Secret key for JWT token signing"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_expires_in" {
+  description = "JWT token expiration time"
+  type        = string
+  default     = "7d"
+}
+
+variable "allowed_emails" {
+  description = "Comma-separated list of allowed email addresses for authentication"
+  type        = string
+}

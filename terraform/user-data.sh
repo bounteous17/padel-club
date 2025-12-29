@@ -37,6 +37,11 @@ cat > /opt/padel-club/.env << 'ENVFILE'
 DATABASE_URL="postgresql://${db_username}:${db_password}@${db_host}:${db_port}/${db_name}?schema=public"
 PORT=3000
 NODE_ENV=production
+FRONTEND_URL=https://${frontend_domain}
+GOOGLE_CLIENT_ID=${google_client_id}
+JWT_SECRET=${jwt_secret}
+JWT_EXPIRES_IN=${jwt_expires_in}
+ALLOWED_EMAILS=${allowed_emails}
 ENVFILE
 chown appuser:appuser /opt/padel-club/.env
 chmod 600 /opt/padel-club/.env

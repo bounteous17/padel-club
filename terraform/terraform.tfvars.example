@@ -19,3 +19,9 @@ github_repository = "your-username/padel-club" # Your GitHub repo for OIDC auth
 domain_name       = "yourdomain.com"         # Your registered domain
 api_subdomain     = "api"                    # API subdomain (api.yourdomain.com)
 certificate_email = "your-email@example.com" # Email for Let's Encrypt notifications
+
+# Google OAuth Configuration
+google_client_id = "your-google-client-id.apps.googleusercontent.com"
+jwt_secret       = "your-secure-random-secret-at-least-32-characters"
+jwt_expires_in   = "7d"
+allowed_emails   = "user1@gmail.com,user2@gmail.com" # Comma-separated whitelist

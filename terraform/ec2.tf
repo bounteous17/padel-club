@@ -30,7 +30,12 @@ resource "aws_instance" "backend" {
     db_username       = var.db_username
     db_password       = var.db_password
     api_domain        = "${var.api_subdomain}.${var.domain_name}"
+    frontend_domain   = var.domain_name
     certificate_email = var.certificate_email
+    google_client_id  = var.google_client_id
+    jwt_secret        = var.jwt_secret
+    jwt_expires_in    = var.jwt_expires_in
+    allowed_emails    = var.allowed_emails
   }))
 
   root_block_device {
