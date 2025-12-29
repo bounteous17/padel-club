@@ -57,7 +57,13 @@ variable "db_password" {
 variable "db_name" {
   description = "PostgreSQL database name"
   type        = string
-  default     = "padel_club"
+  default     = "universal_padel_club"
+}
+
+variable "allowed_db_cidr" {
+  description = "CIDR block allowed to access PostgreSQL database from internet"
+  type        = string
+  default     = "0.0.0.0/0"
 }
 
 variable "db_instance_class" {
@@ -70,4 +76,10 @@ variable "db_allocated_storage" {
   description = "RDS allocated storage in GB"
   type        = number
   default     = 20
+}
+
+# GitHub Configuration
+variable "github_repository" {
+  description = "GitHub repository in format 'owner/repo' for OIDC authentication"
+  type        = string
 }

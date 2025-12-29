@@ -43,3 +43,14 @@ output "ssh_command" {
   description = "SSH command to connect to backend EC2"
   value       = "ssh -i ~/.ssh/${var.key_name}.pem ec2-user@${aws_eip.backend.public_ip}"
 }
+
+# GitHub Actions
+output "github_actions_role_arn" {
+  description = "IAM Role ARN for GitHub Actions"
+  value       = aws_iam_role.github_actions.arn
+}
+
+output "ec2_instance_id" {
+  description = "EC2 Instance ID for backend deployments"
+  value       = aws_instance.backend.id
+}

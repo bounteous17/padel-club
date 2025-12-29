@@ -60,13 +60,22 @@ resource "aws_security_group" "rds" {
   description = "Security group for RDS PostgreSQL"
   vpc_id      = aws_vpc.main.id
 
-  # PostgreSQL from EC2 only
+  # PostgreSQL from EC2
   ingress {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
     security_groups = [aws_security_group.ec2.id]
     description     = "PostgreSQL from EC2"
+  }
+
+  # PostgreSQL from allowed CIDR (for public access)
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [var.allowed_db_cidr]
+    description = "PostgreSQL public access"
   }
 
   # All outbound traffic

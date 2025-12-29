@@ -66,12 +66,22 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# DB Subnet Group for RDS
+# DB Subnet Group for RDS (private - deprecated, kept for reference)
 resource "aws_db_subnet_group" "main" {
   name       = "${var.project_name}-db-subnet-group"
   subnet_ids = aws_subnet.private[*].id
 
   tags = {
     Name = "${var.project_name}-db-subnet-group"
+  }
+}
+
+# DB Subnet Group for RDS (public - for internet access)
+resource "aws_db_subnet_group" "public" {
+  name       = "${var.project_name}-db-public-subnet-group"
+  subnet_ids = aws_subnet.public[*].id
+
+  tags = {
+    Name = "${var.project_name}-db-public-subnet-group"
   }
 }

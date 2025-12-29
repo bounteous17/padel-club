@@ -21,6 +21,7 @@ resource "aws_instance" "backend" {
   key_name               = var.key_name
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.ec2.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2.name
 
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
     db_host     = aws_db_instance.main.address
@@ -31,8 +32,8 @@ resource "aws_instance" "backend" {
   }))
 
   root_block_device {
-    volume_size = 8
-    volume_type = "gp2"
+    volume_size = 30
+    volume_type = "gp3"
   }
 
   tags = {
