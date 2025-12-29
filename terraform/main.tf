@@ -27,6 +27,20 @@ provider "aws" {
   }
 }
 
+# US East 1 provider for CloudFront ACM certificates
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Project     = "padel-club"
+      Environment = var.environment
+      ManagedBy   = "terraform"
+    }
+  }
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }

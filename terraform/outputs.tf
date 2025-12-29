@@ -5,8 +5,18 @@ output "frontend_bucket_name" {
 }
 
 output "frontend_url" {
-  description = "Frontend website URL"
-  value       = "http://${aws_s3_bucket_website_configuration.frontend.website_endpoint}"
+  description = "Frontend website URL (HTTPS)"
+  value       = "https://${var.domain_name}"
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID for cache invalidation"
+  value       = aws_cloudfront_distribution.frontend.id
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution domain name"
+  value       = aws_cloudfront_distribution.frontend.domain_name
 }
 
 # Backend
@@ -16,8 +26,13 @@ output "backend_public_ip" {
 }
 
 output "backend_url" {
-  description = "Backend API URL"
-  value       = "http://${aws_eip.backend.public_ip}:3000"
+  description = "Backend API URL (HTTPS)"
+  value       = "https://${var.api_subdomain}.${var.domain_name}"
+}
+
+output "api_domain" {
+  description = "API domain name"
+  value       = "${var.api_subdomain}.${var.domain_name}"
 }
 
 # Database

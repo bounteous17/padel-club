@@ -71,6 +71,25 @@ resource "aws_iam_role_policy" "frontend_deploy" {
   })
 }
 
+# Policy for CloudFront cache invalidation
+resource "aws_iam_role_policy" "cloudfront_invalidation" {
+  name = "cloudfront-invalidation"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateInvalidation"
+        ]
+        Resource = aws_cloudfront_distribution.frontend.arn
+      }
+    ]
+  })
+}
+
 # Policy for EC2 backend deployment (SSM Session Manager)
 resource "aws_iam_role_policy" "backend_deploy" {
   name = "backend-deploy"

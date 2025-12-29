@@ -24,11 +24,13 @@ resource "aws_instance" "backend" {
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
 
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
-    db_host     = aws_db_instance.main.address
-    db_port     = aws_db_instance.main.port
-    db_name     = var.db_name
-    db_username = var.db_username
-    db_password = var.db_password
+    db_host           = aws_db_instance.main.address
+    db_port           = aws_db_instance.main.port
+    db_name           = var.db_name
+    db_username       = var.db_username
+    db_password       = var.db_password
+    api_domain        = "${var.api_subdomain}.${var.domain_name}"
+    certificate_email = var.certificate_email
   }))
 
   root_block_device {

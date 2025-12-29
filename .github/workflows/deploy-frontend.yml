@@ -52,5 +52,12 @@ jobs:
         working-directory: frontend
         run: |
           aws s3 sync dist/ s3://${{ vars.S3_BUCKET_NAME }} --delete
-          echo "Frontend deployed successfully!"
-          echo "URL: http://${{ vars.S3_BUCKET_NAME }}.s3-website.${{ env.AWS_REGION }}.amazonaws.com"
+          echo "Frontend deployed to S3 successfully!"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+          echo "CloudFront cache invalidated!"
+          echo "URL: https://${{ vars.DOMAIN_NAME }}"

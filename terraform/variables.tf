@@ -83,3 +83,20 @@ variable "github_repository" {
   description = "GitHub repository in format 'owner/repo' for OIDC authentication"
   type        = string
 }
+
+# Domain Configuration
+variable "domain_name" {
+  description = "Root domain name (e.g., example.com)"
+  type        = string
+}
+
+variable "api_subdomain" {
+  description = "Subdomain for API (e.g., 'api' for api.example.com)"
+  type        = string
+  default     = "api"
+}
+
+variable "certificate_email" {
+  description = "Email for Let's Encrypt certificate notifications"
+  type        = string
+}
