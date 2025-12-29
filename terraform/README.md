@@ -111,6 +111,58 @@ terraform destroy
 | `github_actions_role_arn` | IAM role for GitHub Actions |
 | `ec2_instance_id` | EC2 instance ID for deployments |
 
+## GitHub Actions AWS Authentication (OIDC)
+
+GitHub Actions authenticates with AWS using **OIDC (OpenID Connect)** - no static credentials stored.
+
+```
+┌─────────────────┐      1. Request token      ┌─────────────────┐
+│  GitHub Actions │ ──────────────────────────▶│  GitHub OIDC    │
+│    Workflow     │◀────────────────────────── │    Provider     │
+└────────┬────────┘      2. JWT token          └─────────────────┘
+         │
+         │ 3. AssumeRoleWithWebIdentity (JWT)
+         ▼
+┌─────────────────┐      4. Verify token       ┌─────────────────┐
+│    AWS IAM      │ ──────────────────────────▶│  GitHub OIDC    │
+│     Role        │◀────────────────────────── │  (trust policy) │
+└────────┬────────┘      5. Valid!             └─────────────────┘
+         │
+         │ 6. Temporary AWS credentials (~1hr)
+         ▼
+┌─────────────────┐
+│  AWS Resources  │
+│  (S3, SSM, EC2) │
+└─────────────────┘
+```
+
+**Terraform resources (`iam.tf`):**
+
+| Resource | Purpose |
+|----------|---------|
+| `aws_iam_openid_connect_provider.github` | Tells AWS to trust GitHub's identity tokens |
+| `aws_iam_role.github_actions` | Role with trust policy restricted to your repo |
+| `aws_iam_role_policy.frontend_deploy` | S3 upload permissions |
+| `aws_iam_role_policy.backend_deploy` | SSM command permissions for EC2 |
+
+**Trust policy condition:**
+```json
+"StringLike": {
+  "token.actions.githubusercontent.com:sub": "repo:YOUR_ORG/YOUR_REPO:*"
+}
+```
+
+**Benefits over access keys:**
+- No long-lived credentials to leak
+- Automatic credential rotation (valid ~1 hour)
+- Only your specific repository can assume the role
+- Follows AWS security best practices
+
+**Troubleshooting `sts:AssumeRoleWithWebIdentity` errors:**
+1. Verify `github_repository` in `terraform.tfvars` matches your actual repo exactly
+2. Re-run `terraform apply` after changing the repository name
+3. Ensure `AWS_ROLE_ARN` secret in GitHub matches `terraform output github_actions_role_arn`
+
 ## Cost
 
 - **Free tier (12 months)**: ~$0/month
