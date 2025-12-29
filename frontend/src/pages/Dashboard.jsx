@@ -23,6 +23,18 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Add Player Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newPlayer, setNewPlayer] = useState({
+    firstName: '',
+    secondName: '',
+    rating: 5,
+    age: '',
+    preferenceHours: []
+  });
+  const [addPlayerLoading, setAddPlayerLoading] = useState(false);
+  const [addPlayerError, setAddPlayerError] = useState(null);
+
   const fetchPlayers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -104,7 +116,73 @@ export default function Dashboard() {
   ];
 
   const handleInsertUser = () => {
-    // Disabled for MVP
+    setShowAddModal(true);
+    setAddPlayerError(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowAddModal(false);
+    setNewPlayer({
+      firstName: '',
+      secondName: '',
+      rating: 5,
+      age: '',
+      preferenceHours: []
+    });
+    setAddPlayerError(null);
+  };
+
+  const handleNewPlayerChange = (field, value) => {
+    setNewPlayer(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleNewPlayerHoursChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    handleNewPlayerChange('preferenceHours', selectedOptions);
+  };
+
+  const handleSubmitNewPlayer = async (e) => {
+    e.preventDefault();
+    setAddPlayerLoading(true);
+    setAddPlayerError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/players`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: newPlayer.firstName,
+          secondName: newPlayer.secondName,
+          rating: parseFloat(newPlayer.rating),
+          age: parseInt(newPlayer.age, 10),
+          preferenceHours: newPlayer.preferenceHours,
+        }),
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        logout();
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details?.join(', ') || errorData.error || 'Failed to create player');
+      }
+
+      handleCloseModal();
+      fetchPlayers();
+    } catch (err) {
+      setAddPlayerError(err.message);
+    } finally {
+      setAddPlayerLoading(false);
+    }
   };
 
   return (
@@ -134,7 +212,6 @@ export default function Dashboard() {
             <button
               className="btn-primary btn-insert"
               onClick={handleInsertUser}
-              disabled
             >
               + Add Player
             </button>
@@ -358,6 +435,113 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Add Player Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add New Player</h2>
+              <button className="modal-close" onClick={handleCloseModal}>×</button>
+            </div>
+            <form onSubmit={handleSubmitNewPlayer}>
+              <div className="modal-body">
+                {addPlayerError && (
+                  <div className="modal-error">{addPlayerError}</div>
+                )}
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    First Name *
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Enter first name"
+                      value={newPlayer.firstName}
+                      onChange={(e) => handleNewPlayerChange('firstName', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Second Name *
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Enter second name"
+                      value={newPlayer.secondName}
+                      onChange={(e) => handleNewPlayerChange('secondName', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Rating: {newPlayer.rating}
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="0.5"
+                      className="range-slider"
+                      value={newPlayer.rating}
+                      onChange={(e) => handleNewPlayerChange('rating', parseFloat(e.target.value))}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Age *
+                    <input
+                      type="number"
+                      className="input"
+                      placeholder="Enter age"
+                      min="1"
+                      max="120"
+                      value={newPlayer.age}
+                      onChange={(e) => handleNewPlayerChange('age', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Preferred Playing Hours *
+                    <select
+                      multiple
+                      className="select-multiple"
+                      value={newPlayer.preferenceHours}
+                      onChange={handleNewPlayerHoursChange}
+                      required
+                    >
+                      {timeSlots.map((slot, index) => (
+                        <option key={index} value={slot}>
+                          {slot}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="help-text">Hold Ctrl/Cmd to select multiple time slots</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={addPlayerLoading}>
+                  {addPlayerLoading ? 'Creating...' : 'Create Player'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
