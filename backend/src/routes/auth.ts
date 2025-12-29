@@ -49,7 +49,7 @@ router.post('/google', async (req: Request<{}, {}, GoogleAuthRequest>, res: Resp
     const token = jwt.sign(
       { email, name, picture },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
     );
 
     res.json({
