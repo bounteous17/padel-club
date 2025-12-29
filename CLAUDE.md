@@ -77,3 +77,43 @@ aws s3 sync dist/ s3://$(terraform -chdir=../terraform output -raw frontend_buck
 - `key_name` - Existing EC2 key pair name
 - `db_password` - PostgreSQL password
 - `allowed_ssh_cidr` - Your IP for SSH access
+
+## Authentication
+
+The application uses Google OAuth for authentication with an email whitelist.
+
+**Allowed users:**
+- `joseguerola9@gmail.com`
+- `alexserra258@gmail.com`
+
+**Auth flow:**
+1. User clicks "Sign in with Google" on login page
+2. Frontend receives Google credential token
+3. Backend verifies token with Google and checks email whitelist
+4. If whitelisted, backend issues JWT; otherwise returns 403 Forbidden
+5. Frontend stores JWT and includes it in all API requests
+
+**Backend environment variables (`backend/.env`):**
+```env
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+ALLOWED_EMAILS=joseguerola9@gmail.com,alexserra258@gmail.com
+FRONTEND_URL=http://localhost:5173
+```
+
+**Frontend environment variables (`frontend/.env`):**
+```env
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+VITE_API_URL=http://localhost:3000
+```
+
+**Auth endpoints:**
+- `POST /api/auth/google` - Verify Google token, return JWT if whitelisted
+- `GET /api/auth/me` - Validate current JWT, return user info
+
+**Protected routes:**
+- All `/api/players` endpoints require valid JWT from whitelisted user
+- Frontend dashboard (`/`) requires authentication
+- Non-authenticated users are redirected to `/login`
+- Non-whitelisted users are shown `/forbidden` page

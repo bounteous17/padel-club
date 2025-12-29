@@ -1,0 +1,71 @@
+.forbidden-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.forbidden-container {
+  text-align: center;
+  max-width: 500px;
+}
+
+.forbidden-icon {
+  color: var(--accent-pink);
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.5));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.forbidden-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--accent-pink);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+}
+
+.forbidden-code {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-family: 'Courier New', monospace;
+}
+
+.forbidden-message {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+}
+
+.forbidden-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.forbidden-link {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-purple));
+  color: var(--bg-primary);
+  text-decoration: none;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 2px solid var(--primary-color);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: all 0.3s ease;
+}
+
+.forbidden-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+}
