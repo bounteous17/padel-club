@@ -110,6 +110,18 @@ export default function Dashboard() {
     handleFilterChange('preferenceHours', selectedOptions);
   };
 
+  const handleResetFilters = () => {
+    setFilters({
+      firstName: '',
+      secondName: '',
+      ratingMin: 0,
+      ratingMax: 10,
+      ageMin: '',
+      ageMax: '',
+      preferenceHours: []
+    });
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -347,12 +359,20 @@ export default function Dashboard() {
         <div className="filter-card">
           <div className="filter-header">
             <h2>Player Filters</h2>
-            <button
-              className="btn-primary btn-insert"
-              onClick={handleInsertUser}
-            >
-              + Add Player
-            </button>
+            <div className="filter-header-actions">
+              <button
+                className="btn-secondary btn-reset"
+                onClick={handleResetFilters}
+              >
+                Reset Filters
+              </button>
+              <button
+                className="btn-primary btn-insert"
+                onClick={handleInsertUser}
+              >
+                + Add Player
+              </button>
+            </div>
           </div>
 
           <div className="filter-grid">
