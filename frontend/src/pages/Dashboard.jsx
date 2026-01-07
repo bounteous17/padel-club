@@ -35,6 +35,18 @@ export default function Dashboard() {
   const [addPlayerLoading, setAddPlayerLoading] = useState(false);
   const [addPlayerError, setAddPlayerError] = useState(null);
 
+  // Edit Player Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState(null);
+  const [editPlayerLoading, setEditPlayerLoading] = useState(false);
+  const [editPlayerError, setEditPlayerError] = useState(null);
+
+  // Delete Confirmation State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [playerToDelete, setPlayerToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+
   const fetchPlayers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -104,15 +116,21 @@ export default function Dashboard() {
   };
 
   const timeSlots = [
-    '06:00 - 08:00',
-    '08:00 - 10:00',
-    '10:00 - 12:00',
-    '12:00 - 14:00',
-    '14:00 - 16:00',
-    '16:00 - 18:00',
-    '18:00 - 20:00',
-    '20:00 - 22:00',
-    '22:00 - 00:00'
+    // Regular 1.5-hour intervals
+    '07:00 - 08:30',
+    '08:30 - 10:00',
+    '10:00 - 11:30',
+    '11:30 - 13:00',
+    '13:00 - 14:30',
+    '14:30 - 16:00',
+    '16:00 - 17:30',
+    '17:30 - 19:00',
+    '19:00 - 20:30',
+    '20:30 - 22:00',
+    // Extra evening slots
+    '17:00 - 18:30',
+    '18:30 - 20:00',
+    '20:00 - 21:30',
   ];
 
   const handleInsertUser = () => {
@@ -185,6 +203,126 @@ export default function Dashboard() {
     }
   };
 
+  // Edit Player Handlers
+  const handleEditPlayer = (player) => {
+    setEditingPlayer({
+      id: player.id,
+      firstName: player.firstName,
+      secondName: player.secondName,
+      rating: player.rating,
+      age: player.age.toString(),
+      preferenceHours: player.preferenceHours,
+    });
+    setShowEditModal(true);
+    setEditPlayerError(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingPlayer(null);
+    setEditPlayerError(null);
+  };
+
+  const handleEditPlayerChange = (field, value) => {
+    setEditingPlayer(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEditPlayerHoursChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    handleEditPlayerChange('preferenceHours', selectedOptions);
+  };
+
+  const handleSubmitEditPlayer = async (e) => {
+    e.preventDefault();
+    setEditPlayerLoading(true);
+    setEditPlayerError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/players/${editingPlayer.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: editingPlayer.firstName,
+          secondName: editingPlayer.secondName,
+          rating: parseFloat(editingPlayer.rating),
+          age: parseInt(editingPlayer.age, 10),
+          preferenceHours: editingPlayer.preferenceHours,
+        }),
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        logout();
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details?.join(', ') || errorData.error || 'Failed to update player');
+      }
+
+      handleCloseEditModal();
+      fetchPlayers();
+    } catch (err) {
+      setEditPlayerError(err.message);
+    } finally {
+      setEditPlayerLoading(false);
+    }
+  };
+
+  // Delete Player Handlers
+  const handleDeleteClick = (player) => {
+    setPlayerToDelete(player);
+    setShowDeleteConfirm(true);
+    setDeleteError(null);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setPlayerToDelete(null);
+    setDeleteError(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!playerToDelete) return;
+
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/players/${playerToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        logout();
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok && response.status !== 204) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete player');
+      }
+
+      handleCancelDelete();
+      fetchPlayers();
+    } catch (err) {
+      setDeleteError(err.message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <div className="app">
       <div className="container">
@@ -254,7 +392,7 @@ export default function Dashboard() {
                       type="range"
                       min="0"
                       max="10"
-                      step="0.5"
+                      step="0.1"
                       className="range-slider"
                       value={filters.ratingMin}
                       onChange={(e) => handleFilterChange('ratingMin', parseFloat(e.target.value))}
@@ -267,7 +405,7 @@ export default function Dashboard() {
                       type="range"
                       min="0"
                       max="10"
-                      step="0.5"
+                      step="0.1"
                       className="range-slider"
                       value={filters.ratingMax}
                       onChange={(e) => handleFilterChange('ratingMax', parseFloat(e.target.value))}
@@ -408,6 +546,7 @@ export default function Dashboard() {
                     <th>Rating</th>
                     <th>Age</th>
                     <th>Preferred Hours</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -426,6 +565,22 @@ export default function Dashboard() {
                             <span key={idx} className="time-slot-badge">{slot}</span>
                           ))}
                         </div>
+                      </td>
+                      <td className="actions-cell">
+                        <button
+                          className="btn-action btn-edit"
+                          onClick={() => handleEditPlayer(player)}
+                          title="Edit player"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-action btn-delete"
+                          onClick={() => handleDeleteClick(player)}
+                          title="Delete player"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -485,7 +640,7 @@ export default function Dashboard() {
                       type="range"
                       min="0"
                       max="10"
-                      step="0.5"
+                      step="0.1"
                       className="range-slider"
                       value={newPlayer.rating}
                       onChange={(e) => handleNewPlayerChange('rating', parseFloat(e.target.value))}
@@ -539,6 +694,148 @@ export default function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Player Modal */}
+      {showEditModal && editingPlayer && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Player</h2>
+              <button className="modal-close" onClick={handleCloseEditModal}>×</button>
+            </div>
+            <form onSubmit={handleSubmitEditPlayer}>
+              <div className="modal-body">
+                {editPlayerError && (
+                  <div className="modal-error">{editPlayerError}</div>
+                )}
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    First Name *
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Enter first name"
+                      value={editingPlayer.firstName}
+                      onChange={(e) => handleEditPlayerChange('firstName', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Second Name *
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Enter second name"
+                      value={editingPlayer.secondName}
+                      onChange={(e) => handleEditPlayerChange('secondName', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Rating: {editingPlayer.rating}
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      className="range-slider"
+                      value={editingPlayer.rating}
+                      onChange={(e) => handleEditPlayerChange('rating', parseFloat(e.target.value))}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Age *
+                    <input
+                      type="number"
+                      className="input"
+                      placeholder="Enter age"
+                      min="1"
+                      max="120"
+                      value={editingPlayer.age}
+                      onChange={(e) => handleEditPlayerChange('age', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="filter-label">
+                    Preferred Playing Hours *
+                    <select
+                      multiple
+                      className="select-multiple"
+                      value={editingPlayer.preferenceHours}
+                      onChange={handleEditPlayerHoursChange}
+                      required
+                    >
+                      {timeSlots.map((slot, index) => (
+                        <option key={index} value={slot}>
+                          {slot}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="help-text">Hold Ctrl/Cmd to select multiple time slots</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={handleCloseEditModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={editPlayerLoading}>
+                  {editPlayerLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && playerToDelete && (
+        <div className="modal-overlay" onClick={handleCancelDelete}>
+          <div className="modal-content modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Confirm Delete</h2>
+              <button className="modal-close" onClick={handleCancelDelete}>×</button>
+            </div>
+            <div className="modal-body">
+              {deleteError && (
+                <div className="modal-error">{deleteError}</div>
+              )}
+              <p className="confirm-message">
+                Are you sure you want to delete player{' '}
+                <strong>{playerToDelete.firstName} {playerToDelete.secondName}</strong>?
+              </p>
+              <p className="confirm-warning">This action cannot be undone.</p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary" onClick={handleCancelDelete}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

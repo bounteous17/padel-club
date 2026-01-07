@@ -15,15 +15,21 @@ const secondNames = [
 ];
 
 const timeSlots = [
-  '06:00 - 08:00',
-  '08:00 - 10:00',
-  '10:00 - 12:00',
-  '12:00 - 14:00',
-  '14:00 - 16:00',
-  '16:00 - 18:00',
-  '18:00 - 20:00',
-  '20:00 - 22:00',
-  '22:00 - 00:00'
+  // Regular 1.5-hour intervals
+  '07:00 - 08:30',
+  '08:30 - 10:00',
+  '10:00 - 11:30',
+  '11:30 - 13:00',
+  '13:00 - 14:30',
+  '14:30 - 16:00',
+  '16:00 - 17:30',
+  '17:30 - 19:00',
+  '19:00 - 20:30',
+  '20:30 - 22:00',
+  // Extra evening slots
+  '17:00 - 18:30',
+  '18:30 - 20:00',
+  '20:00 - 21:30',
 ];
 
 function randomElement<T>(arr: T[]): T {
@@ -31,8 +37,8 @@ function randomElement<T>(arr: T[]): T {
 }
 
 function randomRating(): number {
-  // Generate rating between 0 and 10 with 0.5 increments
-  return Math.round(Math.random() * 20) / 2;
+  // Generate rating between 0 and 10 with 0.1 increments
+  return Math.round(Math.random() * 100) / 10;
 }
 
 function randomAge(): number {
