@@ -9,6 +9,7 @@ resource "aws_lambda_function" "api" {
   runtime       = "nodejs20.x"
   timeout       = 30
   memory_size   = 512
+  architectures = ["arm64"]
 
   # Placeholder for initial deployment - GitHub Actions will update this
   filename         = "${path.module}/lambda-placeholder.zip"
