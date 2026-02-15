@@ -71,6 +71,28 @@ resource "aws_iam_role_policy" "frontend_deploy" {
   })
 }
 
+# Policy for Lambda deployment
+resource "aws_iam_role_policy" "lambda_deploy" {
+  name = "lambda-deploy"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:UpdateFunctionCode",
+          "lambda:GetFunction",
+          "lambda:GetFunctionConfiguration",
+          "lambda:PublishVersion"
+        ]
+        Resource = aws_lambda_function.api.arn
+      }
+    ]
+  })
+}
+
 # Policy for CloudFront cache invalidation
 resource "aws_iam_role_policy" "cloudfront_invalidation" {
   name = "cloudfront-invalidation"
@@ -90,39 +112,9 @@ resource "aws_iam_role_policy" "cloudfront_invalidation" {
   })
 }
 
-# Policy for EC2 backend deployment (SSM Session Manager)
-resource "aws_iam_role_policy" "backend_deploy" {
-  name = "backend-deploy"
-  role = aws_iam_role.github_actions.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:SendCommand",
-          "ssm:GetCommandInvocation"
-        ]
-        Resource = [
-          "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/${aws_instance.backend.id}",
-          "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:DescribeInstanceInformation"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# IAM Instance Profile for EC2 (for SSM access)
-resource "aws_iam_role" "ec2_ssm" {
-  name = "${var.project_name}-ec2-ssm"
+# Lambda Execution Role
+resource "aws_iam_role" "lambda" {
+  name = "${var.project_name}-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -130,7 +122,7 @@ resource "aws_iam_role" "ec2_ssm" {
       {
         Effect = "Allow"
         Principal = {
-          Service = "ec2.amazonaws.com"
+          Service = "lambda.amazonaws.com"
         }
         Action = "sts:AssumeRole"
       }
@@ -138,35 +130,12 @@ resource "aws_iam_role" "ec2_ssm" {
   })
 
   tags = {
-    Name = "${var.project_name}-ec2-ssm"
+    Name = "${var.project_name}-lambda-role"
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_ssm" {
-  role       = aws_iam_role.ec2_ssm.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-# Allow EC2 to download deployment packages from S3
-resource "aws_iam_role_policy" "ec2_s3_deploy" {
-  name = "s3-deploy-access"
-  role = aws_iam_role.ec2_ssm.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject"
-        ]
-        Resource = "${aws_s3_bucket.frontend.arn}/deploy/*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_instance_profile" "ec2" {
-  name = "${var.project_name}-ec2-profile"
-  role = aws_iam_role.ec2_ssm.name
+# Attach basic Lambda execution policy (CloudWatch Logs)
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }

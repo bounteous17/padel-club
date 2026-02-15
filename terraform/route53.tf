@@ -17,11 +17,15 @@ resource "aws_route53_record" "frontend" {
   }
 }
 
-# A Record for API subdomain → EC2 Elastic IP
+# A Record for API subdomain → API Gateway
 resource "aws_route53_record" "api" {
   zone_id = data.aws_route53_zone.main.zone_id
   name    = "${var.api_subdomain}.${var.domain_name}"
   type    = "A"
-  ttl     = 300
-  records = [aws_eip.backend.public_ip]
+
+  alias {
+    name                   = aws_apigatewayv2_domain_name.api.domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.api.domain_name_configuration[0].hosted_zone_id
+    evaluate_target_health = false
+  }
 }

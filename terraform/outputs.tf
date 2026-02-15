@@ -19,14 +19,24 @@ output "cloudfront_domain_name" {
   value       = aws_cloudfront_distribution.frontend.domain_name
 }
 
-# Backend
-output "backend_public_ip" {
-  description = "Backend EC2 public IP (Elastic IP)"
-  value       = aws_eip.backend.public_ip
+# Backend (Lambda)
+output "lambda_function_name" {
+  description = "Lambda function name for backend API"
+  value       = aws_lambda_function.api.function_name
+}
+
+output "lambda_function_arn" {
+  description = "Lambda function ARN"
+  value       = aws_lambda_function.api.arn
+}
+
+output "api_gateway_url" {
+  description = "API Gateway invoke URL"
+  value       = aws_apigatewayv2_stage.prod.invoke_url
 }
 
 output "backend_url" {
-  description = "Backend API URL (HTTPS)"
+  description = "Backend API URL (HTTPS with custom domain)"
   value       = "https://${var.api_subdomain}.${var.domain_name}"
 }
 
@@ -53,19 +63,8 @@ output "vpc_id" {
   value       = aws_vpc.main.id
 }
 
-# SSH Command
-output "ssh_command" {
-  description = "SSH command to connect to backend EC2"
-  value       = "ssh -i ~/.ssh/${var.key_name}.pem ec2-user@${aws_eip.backend.public_ip}"
-}
-
 # GitHub Actions
 output "github_actions_role_arn" {
   description = "IAM Role ARN for GitHub Actions"
   value       = aws_iam_role.github_actions.arn
-}
-
-output "ec2_instance_id" {
-  description = "EC2 Instance ID for backend deployments"
-  value       = aws_instance.backend.id
 }

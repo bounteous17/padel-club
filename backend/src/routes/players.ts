@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 interface PlayerFilters {
   firstName?: string;
@@ -50,6 +50,7 @@ interface UpdatePlayerBody {
 
 router.get('/', async (req: Request<{}, {}, {}, PlayerFilters>, res: Response) => {
   try {
+    const prisma = getPrismaClient();
     const {
       firstName,
       secondName,
@@ -123,6 +124,7 @@ router.get('/', async (req: Request<{}, {}, {}, PlayerFilters>, res: Response) =
 
 router.post('/', async (req: Request<{}, {}, CreatePlayerBody>, res: Response) => {
   try {
+    const prisma = getPrismaClient();
     const { firstName, secondName, rating, age, preferenceHours } = req.body;
 
     // Validation
@@ -177,6 +179,7 @@ router.post('/', async (req: Request<{}, {}, CreatePlayerBody>, res: Response) =
 
 router.put('/:id', async (req: Request<{ id: string }, {}, UpdatePlayerBody>, res: Response) => {
   try {
+    const prisma = getPrismaClient();
     const { id } = req.params;
     const playerId = parseInt(id, 10);
 
@@ -259,6 +262,7 @@ router.put('/:id', async (req: Request<{ id: string }, {}, UpdatePlayerBody>, re
 
 router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
   try {
+    const prisma = getPrismaClient();
     const { id } = req.params;
     const playerId = parseInt(id, 10);
 

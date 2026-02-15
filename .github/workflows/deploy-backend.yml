@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Deploy Backend (Lambda)
 
 on:
   push:
@@ -16,8 +16,9 @@ env:
   AWS_REGION: eu-central-1
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment: prod
 
     steps:
       - name: Checkout code
@@ -38,58 +39,37 @@ jobs:
         working-directory: backend
         run: npm run build
 
-      - name: Generate Prisma client
-        working-directory: backend
+      - name: Install production dependencies in dist
+        working-directory: backend/dist
+        run: npm ci --omit=dev --ignore-scripts
+
+      - name: Generate Prisma client in dist
+        working-directory: backend/dist
         run: npx prisma generate
 
-      - name: Create deployment package
+      - name: Create Lambda deployment package
+        working-directory: backend/dist
         run: |
-          cd backend
-          tar -czf ../backend-deploy.tar.gz \
-            dist/ \
-            prisma/ \
-            package.json \
-            package-lock.json
+          zip -r ../lambda.zip . -x "*.map" "*.ts" "*.md"
+          echo "Lambda package size: $(du -h ../lambda.zip | cut -f1)"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: backend-deploy
-          path: backend-deploy.tar.gz
-          retention-days: 1
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: prod
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-deploy
-
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ vars.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: backend-deploy.tar.gz
-          target: /tmp/
-
-      - name: Run deployment commands
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ vars.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /opt/padel-club
-            sudo tar -xzf /tmp/backend-deploy.tar.gz -C .
-            sudo chown -R appuser:appuser .
-            rm /tmp/backend-deploy.tar.gz
-            npm ci --production
-            npx prisma migrate deploy
-            sudo systemctl restart padel-club
-            echo "Deploy completed at $(date)"
+      - name: Deploy to Lambda
+        working-directory: backend
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://lambda.zip
+          
+          echo "Waiting for Lambda update to complete..."
+          aws lambda wait function-updated \
+            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }}
+          
+          echo "Lambda function deployed successfully!"
+          echo "Function: ${{ vars.LAMBDA_FUNCTION_NAME }}"
+          echo "API URL: https://${{ vars.API_DOMAIN }}"

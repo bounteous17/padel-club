@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "build:lambda": "npm run build && cd dist && cp -r ../node_modules . && npx prisma generate",
+    "package:lambda": "npm run build:lambda && cd dist && zip -r ../lambda.zip . -x '*.map'",
     "start": "node dist/index.js",
     "seed": "tsx prisma/seed.ts"
   },
@@ -15,7 +17,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "google-auth-library": "^10.5.0",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "serverless-http": "^3.2.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
