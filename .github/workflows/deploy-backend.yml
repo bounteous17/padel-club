@@ -39,9 +39,15 @@ jobs:
         working-directory: backend
         run: npm run build
 
+      - name: Copy package files and Prisma schema to dist
+        working-directory: backend
+        run: |
+          cp package.json package-lock.json dist/
+          cp -r prisma dist/
+
       - name: Install production dependencies in dist
         working-directory: backend/dist
-        run: npm ci --omit=dev --ignore-scripts
+        run: npm ci --omit=dev --ignore-scripts --platform=linux --arch=x64
 
       - name: Generate Prisma client in dist
         working-directory: backend/dist
@@ -59,12 +65,19 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy to Lambda
+      - name: Upload Lambda package to S3
+        working-directory: backend
+        run: |
+          aws s3 cp lambda.zip s3://${{ vars.S3_BUCKET_NAME }}/lambda-deployments/lambda.zip
+          echo "Lambda package uploaded to S3"
+
+      - name: Deploy to Lambda from S3
         working-directory: backend
         run: |
           aws lambda update-function-code \
             --function-name ${{ vars.LAMBDA_FUNCTION_NAME }} \
-            --zip-file fileb://lambda.zip
+            --s3-bucket ${{ vars.S3_BUCKET_NAME }} \
+            --s3-key lambda-deployments/lambda.zip
           
           echo "Waiting for Lambda update to complete..."
           aws lambda wait function-updated \
