@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './Forbidden.css';
 
 export default function Forbidden() {
+  const { t } = useTranslation();
+
   return (
     <div className="forbidden-page">
       <div className="forbidden-container">
@@ -19,17 +22,18 @@ export default function Forbidden() {
           </svg>
         </div>
 
-        <h1 className="forbidden-title">Access Denied</h1>
-        <p className="forbidden-code">403 Forbidden</p>
+        <h1 className="forbidden-title">{t('forbidden.title')}</h1>
+        <p className="forbidden-code">{t('forbidden.code')}</p>
 
         <p className="forbidden-message">
-          Your email is not authorized to access this application.
-          Only club administrators can sign in.
+          {t('forbidden.messageLine1')}
+          <br />
+          {t('forbidden.messageLine2')}
         </p>
 
         <div className="forbidden-actions">
           <Link to="/login" className="forbidden-link">
-            Try Another Account
+            {t('forbidden.action')}
           </Link>
         </div>
       </div>

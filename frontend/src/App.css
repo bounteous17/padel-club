@@ -7,6 +7,18 @@
   }
 }
 
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+.language-picker-shell {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1200;
+}
+
 @keyframes border-glow {
   0%, 100% {
     border-color: var(--primary-color);

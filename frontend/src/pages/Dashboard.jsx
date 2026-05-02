@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import LanguagePicker from '../components/LanguagePicker';
 import './Dashboard.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Dashboard() {
   const { user, token, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
@@ -77,7 +80,7 @@ export default function Dashboard() {
       }
 
       if (!response.ok) {
-        throw new Error('Failed to fetch players');
+        throw new Error(t('dashboard.errors.fetchPlayers'));
       }
 
       const data = await response.json();
@@ -88,7 +91,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters, token, logout, navigate]);
+  }, [filters, token, logout, navigate, t]);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -203,7 +206,9 @@ export default function Dashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.details?.join(', ') || errorData.error || 'Failed to create player');
+        throw new Error(
+          errorData.details?.join(', ') || errorData.error || t('dashboard.errors.createPlayer'),
+        );
       }
 
       handleCloseModal();
@@ -276,7 +281,9 @@ export default function Dashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.details?.join(', ') || errorData.error || 'Failed to update player');
+        throw new Error(
+          errorData.details?.join(', ') || errorData.error || t('dashboard.errors.updatePlayer'),
+        );
       }
 
       handleCloseEditModal();
@@ -323,7 +330,7 @@ export default function Dashboard() {
 
       if (!response.ok && response.status !== 204) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete player');
+        throw new Error(errorData.error || t('dashboard.errors.deletePlayer'));
       }
 
       handleCancelDelete();
@@ -341,36 +348,39 @@ export default function Dashboard() {
         <div className="user-header">
           <div className="user-info">
             {user?.picture && (
-              <img src={user.picture} alt="Profile" className="user-avatar" />
+              <img src={user.picture} alt={t('dashboard.profileAlt')} className="user-avatar" />
             )}
             <span className="user-name">{user?.name}</span>
             <span className="user-email">{user?.email}</span>
           </div>
-          <button onClick={handleLogout} className="btn-logout">
-            Sign Out
-          </button>
+          <div className="user-actions">
+            <LanguagePicker />
+            <button onClick={handleLogout} className="btn-logout">
+              {t('auth.signOut')}
+            </button>
+          </div>
         </div>
 
         <header className="header">
-          <h1 className="title">Padel Club Management</h1>
-          <p className="subtitle">Manage your players efficiently</p>
+          <h1 className="title">{t('dashboard.title')}</h1>
+          <p className="subtitle">{t('dashboard.subtitle')}</p>
         </header>
 
         <div className="filter-card">
           <div className="filter-header">
-            <h2>Player Filters</h2>
+            <h2>{t('dashboard.filter.title')}</h2>
             <div className="filter-header-actions">
               <button
                 className="btn-secondary btn-reset"
                 onClick={handleResetFilters}
               >
-                Reset Filters
+                {t('dashboard.filter.reset')}
               </button>
               <button
                 className="btn-primary btn-insert"
                 onClick={handleInsertUser}
               >
-                + Add Player
+                {t('dashboard.filter.addPlayer')}
               </button>
             </div>
           </div>
@@ -378,11 +388,11 @@ export default function Dashboard() {
           <div className="filter-grid">
             <div className="filter-section">
               <label className="filter-label">
-                First Name
+                {t('dashboard.filter.firstName')}
                 <input
                   type="text"
                   className="input"
-                  placeholder="Search by first name..."
+                  placeholder={t('dashboard.filter.searchFirstName')}
                   value={filters.firstName}
                   onChange={(e) => handleFilterChange('firstName', e.target.value)}
                 />
@@ -391,11 +401,11 @@ export default function Dashboard() {
 
             <div className="filter-section">
               <label className="filter-label">
-                Second Name
+                {t('dashboard.filter.secondName')}
                 <input
                   type="text"
                   className="input"
-                  placeholder="Search by second name..."
+                  placeholder={t('dashboard.filter.searchSecondName')}
                   value={filters.secondName}
                   onChange={(e) => handleFilterChange('secondName', e.target.value)}
                 />
@@ -404,10 +414,13 @@ export default function Dashboard() {
 
             <div className="filter-section full-width">
               <label className="filter-label">
-                Player Rating: {filters.ratingMin} - {filters.ratingMax}
+                {t('dashboard.filter.rating', {
+                  min: filters.ratingMin,
+                  max: filters.ratingMax,
+                })}
                 <div className="range-inputs">
                   <div className="range-input-group">
-                    <label className="range-label">Min</label>
+                    <label className="range-label">{t('dashboard.filter.min')}</label>
                     <input
                       type="range"
                       min="0"
@@ -420,7 +433,7 @@ export default function Dashboard() {
                     <span className="range-value">{filters.ratingMin}</span>
                   </div>
                   <div className="range-input-group">
-                    <label className="range-label">Max</label>
+                    <label className="range-label">{t('dashboard.filter.max')}</label>
                     <input
                       type="range"
                       min="0"
@@ -438,11 +451,11 @@ export default function Dashboard() {
 
             <div className="filter-section">
               <label className="filter-label">
-                Min Age
+                {t('dashboard.filter.minAge')}
                 <input
                   type="number"
                   className="input"
-                  placeholder="Min age"
+                  placeholder={t('dashboard.filter.minAgePlaceholder')}
                   min="0"
                   max="100"
                   value={filters.ageMin}
@@ -453,11 +466,11 @@ export default function Dashboard() {
 
             <div className="filter-section">
               <label className="filter-label">
-                Max Age
+                {t('dashboard.filter.maxAge')}
                 <input
                   type="number"
                   className="input"
-                  placeholder="Max age"
+                  placeholder={t('dashboard.filter.maxAgePlaceholder')}
                   min="0"
                   max="100"
                   value={filters.ageMax}
@@ -468,7 +481,7 @@ export default function Dashboard() {
 
             <div className="filter-section full-width">
               <label className="filter-label">
-                Preferred Playing Hours
+                {t('dashboard.filter.preferredHours')}
                 <select
                   multiple
                   className="select-multiple"
@@ -481,7 +494,7 @@ export default function Dashboard() {
                     </option>
                   ))}
                 </select>
-                <span className="help-text">Hold Ctrl/Cmd to select multiple time slots</span>
+                <span className="help-text">{t('dashboard.filter.holdCtrl')}</span>
               </label>
             </div>
           </div>
@@ -489,26 +502,39 @@ export default function Dashboard() {
           {(filters.firstName || filters.secondName || filters.preferenceHours.length > 0 ||
             filters.ageMin || filters.ageMax || filters.ratingMin > 0 || filters.ratingMax < 10) && (
             <div className="active-filters">
-              <h3>Active Filters:</h3>
+              <h3>{t('dashboard.filter.activeFilters')}</h3>
               <div className="filter-tags">
                 {filters.firstName && (
-                  <span className="filter-tag">First Name: {filters.firstName}</span>
+                  <span className="filter-tag">
+                    {t('dashboard.filter.tags.firstName', { value: filters.firstName })}
+                  </span>
                 )}
                 {filters.secondName && (
-                  <span className="filter-tag">Second Name: {filters.secondName}</span>
+                  <span className="filter-tag">
+                    {t('dashboard.filter.tags.secondName', { value: filters.secondName })}
+                  </span>
                 )}
                 {(filters.ratingMin > 0 || filters.ratingMax < 10) && (
-                  <span className="filter-tag">Rating: {filters.ratingMin} - {filters.ratingMax}</span>
+                  <span className="filter-tag">
+                    {t('dashboard.filter.tags.rating', {
+                      min: filters.ratingMin,
+                      max: filters.ratingMax,
+                    })}
+                  </span>
                 )}
                 {filters.ageMin && (
-                  <span className="filter-tag">Min Age: {filters.ageMin}</span>
+                  <span className="filter-tag">
+                    {t('dashboard.filter.tags.minAge', { value: filters.ageMin })}
+                  </span>
                 )}
                 {filters.ageMax && (
-                  <span className="filter-tag">Max Age: {filters.ageMax}</span>
+                  <span className="filter-tag">
+                    {t('dashboard.filter.tags.maxAge', { value: filters.ageMax })}
+                  </span>
                 )}
                 {filters.preferenceHours.length > 0 && (
                   <span className="filter-tag">
-                    Time Slots: {filters.preferenceHours.length} selected
+                    {t('dashboard.filter.tags.timeSlots', { count: filters.preferenceHours.length })}
                   </span>
                 )}
               </div>
@@ -518,21 +544,21 @@ export default function Dashboard() {
 
         <div className="players-section">
           <div className="players-header">
-            <h2>Players</h2>
-            <span className="player-count">{players.length} found</span>
+            <h2>{t('dashboard.players.title')}</h2>
+            <span className="player-count">{t('dashboard.players.found', { count: players.length })}</span>
           </div>
 
           {loading && (
             <div className="loading-state">
               <div className="loading-spinner"></div>
-              <p>Loading players...</p>
+              <p>{t('dashboard.players.loading')}</p>
             </div>
           )}
 
           {error && (
             <div className="error-state">
-              <p>Error: {error}</p>
-              <p className="error-hint">Make sure the backend server is running on port 3000</p>
+              <p>{t('common.errorPrefix')} {error}</p>
+              <p className="error-hint">{t('dashboard.errors.makeSureBackend')}</p>
             </div>
           )}
 
@@ -552,8 +578,8 @@ export default function Dashboard() {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-              <h3>No Players Found</h3>
-              <p>Try adjusting your filters or add some players to the database</p>
+              <h3>{t('dashboard.players.noPlayersTitle')}</h3>
+              <p>{t('dashboard.players.noPlayersDescription')}</p>
             </div>
           )}
 
@@ -562,11 +588,11 @@ export default function Dashboard() {
               <table className="players-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Rating</th>
-                    <th>Age</th>
-                    <th>Preferred Hours</th>
-                    <th>Actions</th>
+                    <th>{t('dashboard.players.table.name')}</th>
+                    <th>{t('dashboard.players.table.rating')}</th>
+                    <th>{t('dashboard.players.table.age')}</th>
+                    <th>{t('dashboard.players.table.preferredHours')}</th>
+                    <th>{t('dashboard.players.table.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -590,16 +616,16 @@ export default function Dashboard() {
                         <button
                           className="btn-action btn-edit"
                           onClick={() => handleEditPlayer(player)}
-                          title="Edit player"
+                          title={t('dashboard.players.editTitle')}
                         >
-                          Edit
+                          {t('dashboard.players.actionEdit')}
                         </button>
                         <button
                           className="btn-action btn-delete"
                           onClick={() => handleDeleteClick(player)}
-                          title="Delete player"
+                          title={t('dashboard.players.deleteTitle')}
                         >
-                          Delete
+                          {t('dashboard.players.actionDelete')}
                         </button>
                       </td>
                     </tr>
@@ -616,8 +642,8 @@ export default function Dashboard() {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Add New Player</h2>
-              <button className="modal-close" onClick={handleCloseModal}>×</button>
+              <h2>{t('dashboard.modal.addTitle')}</h2>
+              <button className="modal-close" onClick={handleCloseModal} aria-label={t('dashboard.modal.close')}>×</button>
             </div>
             <form onSubmit={handleSubmitNewPlayer}>
               <div className="modal-body">
@@ -627,11 +653,11 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    First Name *
+                    {t('dashboard.modal.firstName')}
                     <input
                       type="text"
                       className="input"
-                      placeholder="Enter first name"
+                      placeholder={t('dashboard.modal.enterFirstName')}
                       value={newPlayer.firstName}
                       onChange={(e) => handleNewPlayerChange('firstName', e.target.value)}
                       required
@@ -641,11 +667,11 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Second Name *
+                    {t('dashboard.modal.secondName')}
                     <input
                       type="text"
                       className="input"
-                      placeholder="Enter second name"
+                      placeholder={t('dashboard.modal.enterSecondName')}
                       value={newPlayer.secondName}
                       onChange={(e) => handleNewPlayerChange('secondName', e.target.value)}
                       required
@@ -655,7 +681,7 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Rating: {newPlayer.rating}
+                    {t('dashboard.modal.rating', { value: newPlayer.rating })}
                     <input
                       type="range"
                       min="0"
@@ -670,11 +696,11 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Age *
+                    {t('dashboard.modal.age')}
                     <input
                       type="number"
                       className="input"
-                      placeholder="Enter age"
+                      placeholder={t('dashboard.modal.enterAge')}
                       min="1"
                       max="120"
                       value={newPlayer.age}
@@ -686,7 +712,7 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Preferred Playing Hours *
+                    {t('dashboard.modal.preferredHours')}
                     <select
                       multiple
                       className="select-multiple"
@@ -700,17 +726,17 @@ export default function Dashboard() {
                         </option>
                       ))}
                     </select>
-                    <span className="help-text">Hold Ctrl/Cmd to select multiple time slots</span>
+                    <span className="help-text">{t('dashboard.filter.holdCtrl')}</span>
                   </label>
                 </div>
               </div>
 
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={handleCloseModal}>
-                  Cancel
+                  {t('dashboard.modal.cancel')}
                 </button>
                 <button type="submit" className="btn-primary" disabled={addPlayerLoading}>
-                  {addPlayerLoading ? 'Creating...' : 'Create Player'}
+                  {addPlayerLoading ? t('dashboard.modal.creating') : t('dashboard.modal.createPlayer')}
                 </button>
               </div>
             </form>
@@ -723,8 +749,8 @@ export default function Dashboard() {
         <div className="modal-overlay" onClick={handleCloseEditModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Player</h2>
-              <button className="modal-close" onClick={handleCloseEditModal}>×</button>
+              <h2>{t('dashboard.modal.editTitle')}</h2>
+              <button className="modal-close" onClick={handleCloseEditModal} aria-label={t('dashboard.modal.close')}>×</button>
             </div>
             <form onSubmit={handleSubmitEditPlayer}>
               <div className="modal-body">
@@ -734,11 +760,11 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    First Name *
+                    {t('dashboard.modal.firstName')}
                     <input
                       type="text"
                       className="input"
-                      placeholder="Enter first name"
+                      placeholder={t('dashboard.modal.enterFirstName')}
                       value={editingPlayer.firstName}
                       onChange={(e) => handleEditPlayerChange('firstName', e.target.value)}
                       required
@@ -748,11 +774,11 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Second Name *
+                    {t('dashboard.modal.secondName')}
                     <input
                       type="text"
                       className="input"
-                      placeholder="Enter second name"
+                      placeholder={t('dashboard.modal.enterSecondName')}
                       value={editingPlayer.secondName}
                       onChange={(e) => handleEditPlayerChange('secondName', e.target.value)}
                       required
@@ -762,7 +788,7 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Rating: {editingPlayer.rating}
+                    {t('dashboard.modal.rating', { value: editingPlayer.rating })}
                     <input
                       type="range"
                       min="0"
@@ -777,11 +803,11 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Age *
+                    {t('dashboard.modal.age')}
                     <input
                       type="number"
                       className="input"
-                      placeholder="Enter age"
+                      placeholder={t('dashboard.modal.enterAge')}
                       min="1"
                       max="120"
                       value={editingPlayer.age}
@@ -793,7 +819,7 @@ export default function Dashboard() {
 
                 <div className="form-group">
                   <label className="filter-label">
-                    Preferred Playing Hours *
+                    {t('dashboard.modal.preferredHours')}
                     <select
                       multiple
                       className="select-multiple"
@@ -807,17 +833,17 @@ export default function Dashboard() {
                         </option>
                       ))}
                     </select>
-                    <span className="help-text">Hold Ctrl/Cmd to select multiple time slots</span>
+                    <span className="help-text">{t('dashboard.filter.holdCtrl')}</span>
                   </label>
                 </div>
               </div>
 
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={handleCloseEditModal}>
-                  Cancel
+                  {t('dashboard.modal.cancel')}
                 </button>
                 <button type="submit" className="btn-primary" disabled={editPlayerLoading}>
-                  {editPlayerLoading ? 'Saving...' : 'Save Changes'}
+                  {editPlayerLoading ? t('dashboard.modal.saving') : t('dashboard.modal.saveChanges')}
                 </button>
               </div>
             </form>
@@ -830,22 +856,23 @@ export default function Dashboard() {
         <div className="modal-overlay" onClick={handleCancelDelete}>
           <div className="modal-content modal-confirm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Confirm Delete</h2>
-              <button className="modal-close" onClick={handleCancelDelete}>×</button>
+              <h2>{t('dashboard.modal.confirmDeleteTitle')}</h2>
+              <button className="modal-close" onClick={handleCancelDelete} aria-label={t('dashboard.modal.close')}>×</button>
             </div>
             <div className="modal-body">
               {deleteError && (
                 <div className="modal-error">{deleteError}</div>
               )}
               <p className="confirm-message">
-                Are you sure you want to delete player{' '}
-                <strong>{playerToDelete.firstName} {playerToDelete.secondName}</strong>?
+                {t('dashboard.modal.confirmDelete', {
+                  name: `${playerToDelete.firstName} ${playerToDelete.secondName}`,
+                })}
               </p>
-              <p className="confirm-warning">This action cannot be undone.</p>
+              <p className="confirm-warning">{t('dashboard.modal.cannotUndo')}</p>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn-secondary" onClick={handleCancelDelete}>
-                Cancel
+                {t('dashboard.modal.cancel')}
               </button>
               <button
                 type="button"
@@ -853,7 +880,7 @@ export default function Dashboard() {
                 onClick={handleConfirmDelete}
                 disabled={deleteLoading}
               >
-                {deleteLoading ? 'Deleting...' : 'Delete'}
+                {deleteLoading ? t('dashboard.modal.deleting') : t('dashboard.modal.delete')}
               </button>
             </div>
           </div>
